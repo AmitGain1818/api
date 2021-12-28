@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -13,19 +15,19 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  var stringResponse;
-  Map? mapResponse;
+  var _jsonPost = [];
 
-  Future getData() async {
-    http.Response response;
-
-    response = await http.get(
-      Uri.parse('https://reqres.in/api/users/2'),
-    );
-    if (response.statusCode == 200) {
+  Future fetchData() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://jsonplaceholder.typicode.com/posts'),
+      );
+      final jsonData = jsonDecode(response.body) as List;
       setState(() {
-        stringResponse = response.body;
+        _jsonPost = jsonData;
       });
+    } catch (err) {
+      print('this the $err error');
     }
   }
 
@@ -33,7 +35,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    getData();
+    fetchData();
   }
 
   @override
@@ -41,24 +43,16 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Welcome to Flutter',
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Welcome to Flutter'),
-        ),
-        body: Center(
-          child: Container(
-            width: 300,
-            height: 300,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Colors.blueGrey,
-            ),
-            child: Center(
-                child: mapResponse == null
-                    ? Text('the data is loading')
-                    : Text("${mapResponse?['text'].toString()}")),
+          appBar: AppBar(
+            title: const Text('Welcome to Flutter'),
           ),
-        ),
-      ),
+          body: ListView.builder(
+              itemCount: _jsonPost.length,
+              itemBuilder: (context, index) {
+                final post = _jsonPost[index];
+                return Text(
+                    "Title: ${post['title']}\n body: ${post['body']}\n \n");
+              })),
     );
   }
 }
